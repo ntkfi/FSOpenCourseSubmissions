@@ -12,18 +12,20 @@ const Statistics = ({ good, neutral, bad}) => {
   }
 
   return (
-    <div>
-      <Statisticline text={'good'} statistic={good} />
-      <Statisticline text={'neutral'} statistic={neutral} />
-      <Statisticline text={'bad'} statistic={bad} />
-      <Statisticline text={'all'} statistic={total} />
-      <Statisticline text={'average'} statistic={(good - bad) / total} />
-      <Statisticline text={'positive'} statistic={good / total + ' %'} />
-    </div>
+    <table>
+      <tbody>
+        <Statisticline text={'good'} statistic={good} />
+        <Statisticline text={'neutral'} statistic={neutral} />
+        <Statisticline text={'bad'} statistic={bad} />
+        <Statisticline text={'all'} statistic={total} />
+        <Statisticline text={'average'} statistic={((good - bad) / total).toPrecision(3)} />
+        <Statisticline text={'positive'} statistic={((good / total) * 100).toPrecision(4) + ' %'} />
+      </tbody>
+    </table>
   )
 }
 
-const Statisticline = ({ text, statistic }) => <p>{text} {statistic}</p>
+const Statisticline = ({ text, statistic }) => <tr><td>{text}</td><td>{statistic}</td></tr>
 
 const Button = ({ onClick, text}) => <button onClick={onClick}>{text}</button>
 
