@@ -1,14 +1,18 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Contacts from './components/Contacts'
 import NewContact from './components/NewContact'
 import FilterField from './components/FilterField'
+import Notification from './components/Notification'
 import phonebookService from './services/persons'
+import './index.css'
 
 const App = () => {
   const [persons, setPersons] = useState([])
   const [newName, setNewName] = useState('')
   const [newNumber, setNewNumber] = useState('')
   const [filter, setFilter] = useState('')
+  const [notification, setNotification] = useState({ message: null, type: null })
+  const notificationTimeout = useRef(null)
 
   useEffect(() => {
     phonebookService
@@ -30,7 +34,8 @@ const App = () => {
 
     if (existingPerson) {
       if (existingPerson.number === newNumber) {
-        alert(`${newName} is already added to phonebook`)
+        showTemporaryNotification(`${newName} is already added to phonebook`, 'error')
+        emptyInputFields()
       }
       else {
         const updatedPerson = { ...existingPerson, number: newNumber }
@@ -39,11 +44,16 @@ const App = () => {
             .updatePhoneNumber(updatedPerson.id, updatedPerson)
             .then(returnedPerson => {
               setPersons(persons.map(person => person.id !== returnedPerson.id ? person : returnedPerson))
+              showTemporaryNotification(`${returnedPerson.name}'s phone number was updated`, 'success')
+              emptyInputFields()
+            })
+            .catch(error => {
+              showTemporaryNotification(`${existingPerson.name} was already removed from server`, 'error')
+              setPersons(persons.filter(person => person.id !== existingPerson.id))
+              emptyInputFields()
             })
         }
       }
-      setNewName('')
-      setNewNumber('')
       return
     }
 
@@ -51,9 +61,9 @@ const App = () => {
     phonebookService
       .addContact(newPerson)
       .then(returnedPerson => {
+        showTemporaryNotification(`${returnedPerson.name} was added to phonebook`, 'success')
         setPersons(persons.concat(returnedPerson))
-        setNewName('')
-        setNewNumber('')
+        emptyInputFields()
       })
   }
 
@@ -63,9 +73,29 @@ const App = () => {
         .deleteContact(id)
         .then(() => {
           setPersons(persons.filter(person => person.id !== id))
+          showTemporaryNotification(`${name} was deleted from phonebook`, 'success')
+        })
+        .catch(error => {
+          setPersons(persons.filter(person => person.id !== id))
+          showTemporaryNotification(`${name} was already removed from server`, 'error')
         })
     }
   }
+
+  const emptyInputFields = () => {
+    setNewName('')
+    setNewNumber('')
+  }
+
+  const showTemporaryNotification = (message, type) => {
+    if (notificationTimeout.current) {
+      clearTimeout(notificationTimeout.current)
+    }
+
+    setNotification({ message, type })
+    notificationTimeout.current = setTimeout(() => setNotification({ message: null, type: null }), 5000)
+  }
+
 
   const filteredPersons = persons.filter(person =>
     person.name.toLowerCase().includes(filter.toLowerCase())
@@ -74,6 +104,7 @@ const App = () => {
   return (
     <div>
       <h2>Phonebook</h2>
+      <Notification message={notification.message} type={notification.type} />
 
       <FilterField filter={filter} setFilter={setFilter} />
 
