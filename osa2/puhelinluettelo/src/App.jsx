@@ -20,46 +20,41 @@ const App = () => {
 
   const handleSubmit = (event) => {
     event.preventDefault()
+
     if (newName.trim() === '') {
       alert('Entering a name is required')
       return
     }
 
-    const isPersonAdded = persons.find(person => person.name.toLowerCase() === newName.toLowerCase())
-    const isNumberAdded = isPersonAdded && isPersonAdded.number === newNumber
+    const existingPerson = persons.find(person => person.name.toLowerCase() === newName.toLowerCase())
 
-    switch (true) {
-      case !isPersonAdded: {
-        const newPerson = { name: newName, number: newNumber }
-        phonebookService
-          .addContact(newPerson)
-          .then(returnedPerson => {
-            setPersons(persons.concat(returnedPerson))
-            setNewName('')
-            setNewNumber('')
-          })
-        break
+    if (existingPerson) {
+      if (existingPerson.number === newNumber) {
+        alert(`${newName} is already added to phonebook`)
       }
-      case isPersonAdded && !isNumberAdded: {
-        const updatedPerson = {...isPersonAdded, number: newNumber}
+      else {
+        const updatedPerson = { ...existingPerson, number: newNumber }
         if (confirm(`${updatedPerson.name} is already added to phonebook, replace the old number with a new one?`)) {
           phonebookService
             .updatePhoneNumber(updatedPerson.id, updatedPerson)
             .then(returnedPerson => {
               setPersons(persons.map(person => person.id !== returnedPerson.id ? person : returnedPerson))
-              setNewName('')
-              setNewNumber('')
             })
         }
-        break
       }
-      case isPersonAdded && isNumberAdded: {
-        alert(`${newName} is already added to phonebook`)
+      setNewName('')
+      setNewNumber('')
+      return
+    }
+
+    const newPerson = { name: newName, number: newNumber }
+    phonebookService
+      .addContact(newPerson)
+      .then(returnedPerson => {
+        setPersons(persons.concat(returnedPerson))
         setNewName('')
         setNewNumber('')
-        break
-      }
-    }
+      })
   }
 
   const handleDelete = (id, name) => {
