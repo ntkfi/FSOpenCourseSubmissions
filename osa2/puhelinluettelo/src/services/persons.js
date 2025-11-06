@@ -1,5 +1,5 @@
 import axios from 'axios'
-const baseUrl = 'http://localhost:3001/api/persons' // Jos käyttää JSON-serveriä niin poista "/api"
+const baseUrl = '/api/persons' // Jos käyttää JSON-serveriä niin tilalle "http://localhost:3001/persons"
 
 const getAllContacts = () => {
     return axios.get(baseUrl).then(response => response.data)
