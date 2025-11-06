@@ -26,7 +26,12 @@ const App = () => {
     event.preventDefault()
 
     if (newName.trim() === '') {
-      alert('Entering a name is required')
+      showTemporaryNotification('Entering a name is required', 'error')
+      return
+    }
+
+    if (newNumber.trim() === '') {
+      showTemporaryNotification('Entering a number is required', 'error')
       return
     }
 
@@ -37,7 +42,7 @@ const App = () => {
         showTemporaryNotification(`${newName} is already added to phonebook`, 'error')
         emptyInputFields()
       }
-      else {
+      else { // Tämä ei nyt toimi! Menee aina catch-osaan
         const updatedPerson = { ...existingPerson, number: newNumber }
         if (confirm(`${updatedPerson.name} is already added to phonebook, replace the old number with a new one?`)) {
           phonebookService

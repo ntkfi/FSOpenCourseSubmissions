@@ -7,7 +7,7 @@ const NewContact = ({ handleSubmit, newName, setNewName, newNumber, setNewNumber
                     name: <input value={newName} placeholder='Enter name...' onChange={(event) => setNewName(event.target.value)} />
                 </div>
                 <div>
-                    number:<input value={newNumber} placeholder='(Optional)' onChange={(event) => setNewNumber(event.target.value)} />
+                    number: <input value={newNumber} placeholder='Enter phone number...' onChange={(event) => setNewNumber(event.target.value)} />
                 </div>
                 <div>
                     <button type="submit">add</button>
