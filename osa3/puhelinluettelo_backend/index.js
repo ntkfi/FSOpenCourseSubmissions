@@ -1,18 +1,52 @@
 const express = require('express')
 const app = express()
+const morgan = require('morgan')
 
 app.use(express.json())
 
+morgan.token('body', (req, res) => {
+  if (req.method === 'POST') {
+    if (!req.body) {
+      return JSON.stringify({error: 'No data sent to server'})
+    }
+    return JSON.stringify(req.body)
+  }
+  return ''
+})
+
+const customFormat = (tokens, req, res) => {
+  if (req.method === 'POST') {
+    return [
+    tokens.method(req, res),
+    tokens.url(req, res),
+    tokens.status(req, res),
+    tokens.res(req, res, 'content-length'), '-',
+    tokens['response-time'](req, res), 'ms',
+    '- Body: ' + tokens.body(req, res)
+  ].join(' ') + '\n'
+  }
+
+  return [
+    tokens.method(req, res),
+    tokens.url(req, res),
+    tokens.status(req, res),
+    tokens.res(req, res, 'content-length'), '-',
+    tokens['response-time'](req, res), 'ms'
+  ].join(' ') + '\n'
+}
+
+app.use(morgan(customFormat))
+
 let persons = [
-    {
-        "name": "Arto Hellas",
-        "number": "040-123456",
-        "id": "1"
-    },
-    {
-        "name": "Ada Lovelace",
-        "number": "39-44-5323523",
-        "id": "2"
+  {
+    "name": "Arto Hellas",
+    "number": "040-123456",
+    "id": "1"
+  },
+  {
+    "name": "Ada Lovelace",
+    "number": "39-44-5323523",
+    "id": "2"
     },
     {
         "name": "Dan Abramov",
@@ -27,11 +61,11 @@ let persons = [
 ]
 
 const validatePostRequest = (requestBody) => {
-  if (!requestBody.name || requestBody.name.trim() === '') {
+  if (!requestBody?.name || requestBody.name.trim() === '') {
     return 'Name missing'
   }
 
-  if (!requestBody.number || requestBody.number.trim() === '') {
+  if (!requestBody?.number || requestBody.number.trim() === '') {
     return 'Number missing'
   }
 
