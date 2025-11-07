@@ -1,5 +1,9 @@
+require('dotenv').config()
 const express = require('express')
+const Person = require('.models/person')
+
 const app = express()
+
 const morgan = require('morgan')
 
 app.use(express.static('dist'))
@@ -8,7 +12,7 @@ app.use(express.json())
 morgan.token('body', (req, res) => {
   if (req.method === 'POST') {
     if (!req.body) {
-      return JSON.stringify({error: 'No data sent to server'})
+      return JSON.stringify({ error: 'No data sent to server' })
     }
     return JSON.stringify(req.body)
   }
@@ -18,13 +22,13 @@ morgan.token('body', (req, res) => {
 const customFormat = (tokens, req, res) => {
   if (req.method === 'POST') {
     return [
-    tokens.method(req, res),
-    tokens.url(req, res),
-    tokens.status(req, res),
-    tokens.res(req, res, 'content-length'), '-',
-    tokens['response-time'](req, res), 'ms',
-    '- Body: ' + tokens.body(req, res)
-  ].join(' ') + '\n'
+      tokens.method(req, res),
+      tokens.url(req, res),
+      tokens.status(req, res),
+      tokens.res(req, res, 'content-length'), '-',
+      tokens['response-time'](req, res), 'ms',
+      '- Body: ' + tokens.body(req, res)
+    ].join(' ') + '\n'
   }
 
   return [
@@ -40,25 +44,10 @@ app.use(morgan(customFormat))
 
 let persons = [
   {
-    "name": "Arto Hellas",
-    "number": "040-123456",
+    "name": "Using hardcoded data",
+    "number": "111111",
     "id": "1"
-  },
-  {
-    "name": "Ada Lovelace",
-    "number": "39-44-5323523",
-    "id": "2"
-    },
-    {
-        "name": "Dan Abramov",
-        "number": "12-43-234345",
-        "id": "3"
-    },
-    {
-        "name": "Mary Poppendieck",
-        "number": "39-23-6423122",
-        "id": "4"
-    }
+  }
 ]
 
 const validatePostRequest = (requestBody) => {
@@ -79,41 +68,43 @@ const validatePostRequest = (requestBody) => {
   return null
 }
 
-const generateId = () => {
-    let newId
-    const MAX_VAL = Number.MAX_SAFE_INTEGER
-
-    do {
-        newId = Math.floor(Math.random() * MAX_VAL)
-        const newIdString = String(newId)
-        const isDuplicate = persons.some(person => person.id === newIdString)
-
-        if (!isDuplicate) {
-            return newIdString
-        }
-
-    } while (true)
-}
+// const generateId = () => {
+//   let newId
+//   const MAX_VAL = Number.MAX_SAFE_INTEGER
+// 
+//   do {
+//     newId = Math.floor(Math.random() * MAX_VAL)
+//     const newIdString = String(newId)
+//     const isDuplicate = persons.some(person => person.id === newIdString)
+// 
+//     if (!isDuplicate) {
+//       return newIdString
+//     }
+// 
+//   } while (true)
+// }
 
 app.get('/info', (req, res) => {
-    const date = new Date()
-    const currentTime = date.toString()
-    const numberOfPersons = persons.length
+  const date = new Date()
+  const currentTime = date.toString()
+  const numberOfPersons = persons.length
 
-    res.send(`
+  res.send(`
         <p>Phonebook has info for ${numberOfPersons} people</p>
         <p>${currentTime}</p>`
-    )
+  )
 })
 
 app.get('/api/persons', (req, res) => {
-    res.json(persons)
+  Person.find({}).then(personsmongo => {
+    res.json(personsmongo)
+  })
 })
 
 app.get('/api/persons/:id', (req, res) => {
   const id = req.params.id
   const person = persons.find(person => person.id === id)
-  
+
   if (person) {
     res.json(person)
   } else {
@@ -128,19 +119,19 @@ app.post('/api/persons', (req, res) => {
 
   if (validationError) {
     return res.status(400).json({
-        error: validationError
+      error: validationError
     })
   }
 
-  const person = {
+  const person = new Person({
     name: body.name,
-    number: body.number,
-    id: generateId(),
-  }
+    number: body.number
+ // id: generateId()
+  })
 
-  persons = persons.concat(person)
-
-  res.json(person)
+  person.save().then(savedPerson => {
+    res.json(savedPerson)
+  })
 })
 
 app.delete('/api/persons/:id', (req, res) => {
@@ -150,7 +141,14 @@ app.delete('/api/persons/:id', (req, res) => {
   res.status(204).end()
 })
 
-const PORT = process.env.PORT || 3001
+const PORT = process.env.PORT
 app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`)
+  console.log(`Server running on port ${PORT}`)
 })
+
+// TODO:
+// 1. korjaa POST. validationerror lähinnä
+// 2. korjaa id:llä haku
+// 3. korjaa poisto
+// 4. korjaa /info sivu
+// 5. poista lokaali persons-objekti
