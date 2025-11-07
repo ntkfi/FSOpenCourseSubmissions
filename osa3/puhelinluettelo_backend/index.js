@@ -52,20 +52,20 @@ let persons = [
 
 const validatePostRequest = (requestBody) => {
   if (!requestBody?.name || requestBody.name.trim() === '') {
-    return 'Name missing'
+    return Promise.resolve('Name missing')
   }
 
   if (!requestBody?.number || requestBody.number.trim() === '') {
-    return 'Number missing'
+    return Promise.resolve('Number missing')
   }
 
-  const nameExists = persons.some(person => person.name === requestBody.name)
-
-  if (nameExists) {
-    return 'Name must be unique'
-  }
-
-  return null
+  return Person.findOne({ name: requestBody.name })
+    .then(nameExists => {
+      if (nameExists) {
+        return 'Name is already in phonebook'
+      }
+      return null
+    })
 }
 
 // const generateId = () => {
@@ -115,13 +115,14 @@ app.get('/api/persons/:id', (req, res) => {
 app.post('/api/persons', (req, res) => {
   const body = req.body
 
-  const validationError = validatePostRequest(body)
-
-  if (validationError) {
-    return res.status(400).json({
-      error: validationError
+  validatePostRequest(body)
+    .then(validationError => {
+      if (validationError) {
+        return res.status(400).json({
+          error: validationError
+        })
+      }
     })
-  }
 
   const person = new Person({
     name: body.name,
