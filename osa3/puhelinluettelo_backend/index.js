@@ -42,14 +42,6 @@ const customFormat = (tokens, req, res) => {
 
 app.use(morgan(customFormat))
 
-let persons = [
-  {
-    "name": "Using hardcoded data",
-    "number": "111111",
-    "id": "1"
-  }
-]
-
 const validatePostRequest = (requestBody) => {
   if (!requestBody?.name || requestBody.name.trim() === '') {
     return Promise.resolve('Name missing')
@@ -68,36 +60,22 @@ const validatePostRequest = (requestBody) => {
     })
 }
 
-// const generateId = () => {
-//   let newId
-//   const MAX_VAL = Number.MAX_SAFE_INTEGER
-// 
-//   do {
-//     newId = Math.floor(Math.random() * MAX_VAL)
-//     const newIdString = String(newId)
-//     const isDuplicate = persons.some(person => person.id === newIdString)
-// 
-//     if (!isDuplicate) {
-//       return newIdString
-//     }
-// 
-//   } while (true)
-// }
-
 app.get('/info', (req, res) => {
   const date = new Date()
   const currentTime = date.toString()
-  const numberOfPersons = persons.length
 
-  res.send(`
-        <p>Phonebook has info for ${numberOfPersons} people</p>
-        <p>${currentTime}</p>`
-  )
+  Person.countDocuments({})
+    .then(count => {
+      res.send(`
+        <p>Phonebook has info for ${count} people</p>
+        <p>${currentTime}</p>
+        `)
+    })
 })
 
 app.get('/api/persons', (req, res) => {
-  Person.find({}).then(personsmongo => {
-    res.json(personsmongo)
+  Person.find({}).then(persons => {
+    res.json(persons)
   })
 })
 
@@ -110,9 +88,7 @@ app.get('/api/persons/:id', (req, res, next) => {
         res.status(404).end()
       }
     })
-    .catch(error => {
-      next(error)
-    })
+    .catch(error => next(error))
 })
 
 app.post('/api/persons', (req, res) => {
@@ -128,7 +104,6 @@ app.post('/api/persons', (req, res) => {
         const person = new Person({
           name: body.name,
           number: body.number
-          // id: generateId()
         })
         person.save().then(savedPerson => {
           res.json(savedPerson)
@@ -137,11 +112,31 @@ app.post('/api/persons', (req, res) => {
     })
 })
 
-app.delete('/api/persons/:id', (req, res) => {
-  const id = req.params.id
-  persons = persons.filter(person => person.id !== id)
+app.put('/api/persons/:id', (req, res, next) => {
+  const { name, number} = req.body
 
-  res.status(204).end()
+  Person.findById(req.params.id)
+    .then(person => {
+      if (!person) {
+        return res.status(404).end()
+      }
+
+      person.name = name
+      person.number = number
+
+      return person.save().then(updatedPerson => {
+        res.json(updatedPerson)
+      })
+    })
+    .catch(error => next(error))
+})
+
+app.delete('/api/persons/:id', (req, res, next) => {
+  Person.findByIdAndDelete(req.params.id)
+    .then(result => {
+      res.status(204).end()
+    })
+    .catch(error => next(error))
 })
 
 const unknownEndpoint = (req, res) => {
@@ -166,8 +161,3 @@ const PORT = process.env.PORT
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`)
 })
-
-// TODO:
-// 3. korjaa poisto
-// 4. korjaa /info sivu
-// 5. poista lokaali persons-objekti
