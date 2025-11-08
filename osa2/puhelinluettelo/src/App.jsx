@@ -42,7 +42,7 @@ const App = () => {
         showTemporaryNotification(`${newName} is already added to phonebook`, 'error')
         emptyInputFields()
       }
-      else { // Tämä ei nyt toimi! Menee aina catch-osaan
+      else {
         const updatedPerson = { ...existingPerson, number: newNumber }
         if (confirm(`${updatedPerson.name} is already added to phonebook, replace the old number with a new one?`)) {
           phonebookService
