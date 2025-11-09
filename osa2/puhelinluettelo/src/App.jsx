@@ -52,7 +52,7 @@ const App = () => {
               showTemporaryNotification(`${returnedPerson.name}'s phone number was updated`, 'success')
               emptyInputFields()
             })
-            .catch(error => {
+            .catch(error => { // Tämä ei nyt toimi jos vaihdetaan numero "väärään muotoon" (ei läpäise validointia) - ei vaadittu että toimii tehtävissä?
               showTemporaryNotification(`${existingPerson.name} was already removed from server`, 'error')
               setPersons(persons.filter(person => person.id !== existingPerson.id))
               emptyInputFields()
@@ -69,6 +69,10 @@ const App = () => {
         showTemporaryNotification(`${returnedPerson.name} was added to phonebook`, 'success')
         setPersons(persons.concat(returnedPerson))
         emptyInputFields()
+      })
+      .catch(error => {
+        showTemporaryNotification(`${error.response.data.error}`, 'error')
+        console.log(error.response)
       })
   }
 

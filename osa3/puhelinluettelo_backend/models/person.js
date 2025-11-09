@@ -9,8 +9,18 @@ mongoose.connect(url)
   .catch(error => console.log('error connecting to mongoDB:', error.message))
 
 const personSchema = new mongoose.Schema({
-  name: String,
-  number: String,
+  name: {
+    type: String,
+    minlength: 3,
+    required: true
+  },
+  number: {
+    type: String,
+    validate: {
+      validator: /^\d{2,3}-\d{8,10}$/
+    },
+    required: true
+  }
 })
 
 personSchema.set('toJSON', {
@@ -22,23 +32,3 @@ personSchema.set('toJSON', {
 })
 
 module.exports = mongoose.model('Person', personSchema, 'persons')
-
-// if (newName && newNumber) {
-//   const person = new Person({
-//     name: newName,
-//     number: newNumber,
-//     })
-//     
-//     person.save().then(result => {
-//       console.log(`Added ${newName} number ${newNumber} to phonebook`)
-//         mongoose.connection.close()
-//       })
-// } else {
-//     Person.find({}).then(persons => {
-//       console.log("Phonebook:")
-//         persons.forEach(p => {console.log(`${p.name} ${p.number}`)})
-//         mongoose.connection.close()
-//     })
-// }
-// 
-// const Person = mongoose.model('Person', personSchema, 'persons')

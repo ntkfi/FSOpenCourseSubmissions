@@ -43,14 +43,6 @@ const customFormat = (tokens, req, res) => {
 app.use(morgan(customFormat))
 
 const validatePostRequest = (requestBody) => {
-  if (!requestBody?.name || requestBody.name.trim() === '') {
-    return Promise.resolve('Name missing')
-  }
-
-  if (!requestBody?.number || requestBody.number.trim() === '') {
-    return Promise.resolve('Number missing')
-  }
-
   return Person.findOne({ name: requestBody.name })
     .then(nameExists => {
       if (nameExists) {
@@ -60,7 +52,7 @@ const validatePostRequest = (requestBody) => {
     })
 }
 
-app.get('/info', (req, res) => {
+app.get('/info', (req, res, next) => {
   const date = new Date()
   const currentTime = date.toString()
 
@@ -71,12 +63,14 @@ app.get('/info', (req, res) => {
         <p>${currentTime}</p>
         `)
     })
+    .catch(error => next(error))
 })
 
-app.get('/api/persons', (req, res) => {
+app.get('/api/persons', (req, res, next) => {
   Person.find({}).then(persons => {
     res.json(persons)
   })
+  .catch(error => next(error))
 })
 
 app.get('/api/persons/:id', (req, res, next) => {
@@ -91,7 +85,7 @@ app.get('/api/persons/:id', (req, res, next) => {
     .catch(error => next(error))
 })
 
-app.post('/api/persons', (req, res) => {
+app.post('/api/persons', (req, res, next) => {
   const body = req.body
 
   validatePostRequest(body)
@@ -108,8 +102,10 @@ app.post('/api/persons', (req, res) => {
         person.save().then(savedPerson => {
           res.json(savedPerson)
         })
+        .catch(error => next(error))
       }
     })
+    .catch(error => next(error))
 })
 
 app.put('/api/persons/:id', (req, res, next) => {
@@ -127,6 +123,7 @@ app.put('/api/persons/:id', (req, res, next) => {
       return person.save().then(updatedPerson => {
         res.json(updatedPerson)
       })
+      .catch(error => next(error))
     })
     .catch(error => next(error))
 })
@@ -150,6 +147,8 @@ const errorHandler = (error, req, res, next) => {
 
   if (error.name === 'CastError') {
     return res.status(400).send({ error: 'malformatted id' })
+  } else if (error.name === 'ValidationError') {
+    return res.status(400).json({ error: error.message })
   }
 
   next(error)
