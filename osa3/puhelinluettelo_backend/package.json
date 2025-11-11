@@ -7,8 +7,11 @@
     "start": "node index.js",
     "dev": "node --watch index.js",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build:ui": "rm -rf dist && cd ../../osa2/puhelinluettelo && npm run build && cp -r dist ../../osa3/puhelinluettelo_backend",
-    "deploy:full": "npm run build:ui && git add . && git commit -m uibuild && git push"
+    "win:build:ui": "(if exist dist rmdir /s /q dist) && cd ..\\..\\osa2\\puhelinluettelo && npm run build && xcopy dist ..\\..\\osa3\\puhelinluettelo_backend\\dist /s /e /i /y",
+    "win:deploy:full": "npm run build:ui && git add . && git commit -m uibuild && git push",
+    "unix:build:ui": "rm -rf dist && cd ../../osa2/puhelinluettelo && npm run build && cp -r dist ../../osa3/puhelinluettelo_backend",
+    "unix:deploy:full": "npm run build:ui && git add . && git commit -m uibuild && git push",
+    "lint": "eslint ."
   },
   "author": "Niko",
   "license": "ISC",
@@ -17,5 +20,11 @@
     "express": "^5.1.0",
     "mongoose": "^8.19.3",
     "morgan": "^1.10.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.1",
+    "@stylistic/eslint-plugin": "^5.5.0",
+    "eslint": "^9.39.1",
+    "globals": "^16.5.0"
   }
 }

@@ -9,7 +9,7 @@ const morgan = require('morgan')
 app.use(express.static('dist'))
 app.use(express.json())
 
-morgan.token('body', (req, res) => {
+morgan.token('body', (req, _res) => {
   if (req.method === 'POST') {
     if (!req.body) {
       return JSON.stringify({ error: 'No data sent to server' })
@@ -66,11 +66,11 @@ app.get('/info', (req, res, next) => {
     .catch(error => next(error))
 })
 
-app.get('/api/persons', (req, res, next) => {
+app.get('/api/persons', (_req, res, next) => {
   Person.find({}).then(persons => {
     res.json(persons)
   })
-  .catch(error => next(error))
+    .catch(error => next(error))
 })
 
 app.get('/api/persons/:id', (req, res, next) => {
@@ -102,14 +102,14 @@ app.post('/api/persons', (req, res, next) => {
         person.save().then(savedPerson => {
           res.json(savedPerson)
         })
-        .catch(error => next(error))
+          .catch(error => next(error))
       }
     })
     .catch(error => next(error))
 })
 
 app.put('/api/persons/:id', (req, res, next) => {
-  const { name, number} = req.body
+  const { name, number } = req.body
 
   Person.findById(req.params.id)
     .then(person => {
@@ -123,14 +123,14 @@ app.put('/api/persons/:id', (req, res, next) => {
       return person.save().then(updatedPerson => {
         res.json(updatedPerson)
       })
-      .catch(error => next(error))
+        .catch(error => next(error))
     })
     .catch(error => next(error))
 })
 
 app.delete('/api/persons/:id', (req, res, next) => {
   Person.findByIdAndDelete(req.params.id)
-    .then(result => {
+    .then(_result => {
       res.status(204).end()
     })
     .catch(error => next(error))
