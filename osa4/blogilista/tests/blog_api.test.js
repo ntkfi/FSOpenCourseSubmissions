@@ -5,6 +5,7 @@ const supertest = require('supertest')
 const app = require('../app')
 const helper = require('./blog_api_test_helper')
 const Blog = require('../models/blog')
+const blog = require('../models/blog')
 
 const api = supertest(app)
 
@@ -126,7 +127,28 @@ describe('deleting blogs', () => {
 
 describe('updating blogs', () => {
     test('a blog can be modified', async () => {
-        //TODO
+        const blogsAtStart = await helper.blogsInDb()
+        const blogToUpdate = blogsAtStart[0]
+        const updatedBlog = {
+            title: blogToUpdate.title,
+            author: blogToUpdate.author,
+            url: blogToUpdate.url,
+            likes: 999
+        }
+
+        await api
+            .put(`/api/blogs/${blogToUpdate.id}`)
+            .send(updatedBlog)
+            .expect(200)
+            .expect('Content-Type', /application\/json/)
+
+        const blogsAtEnd = await helper.blogsInDb()
+        
+        const updatedBlogInDb = blogsAtEnd.find(b => b.id === blogToUpdate.id)
+
+        assert.strictEqual(blogsAtEnd.length, helper.initialBlogs.length)
+        
+        assert(updatedBlogInDb.likes === updatedBlog.likes)
     })
 
     test('a blog that doesn\'t exist can\'t be updated', async () => {
@@ -134,21 +156,24 @@ describe('updating blogs', () => {
         await api
             .put(`/api/blogs/${nonExistingId}`)
             .expect(404)
+
+        const blogsAtEnd = await helper.blogsInDb()
+
+        assert.strictEqual(blogsAtEnd.length, helper.initialBlogs.length)
     })
 
-    test('malformatted id returns 404', async () => {
+    test('malformatted id returns 400', async () => {
         const malformattedId = 'xyz'
         await api
             .put(`/api/blogs/${malformattedId}`)
             .expect(400)
+
+        const blogsAtEnd = await helper.blogsInDb()
+
+        assert.strictEqual(blogsAtEnd.length, helper.initialBlogs.length)
     })
 })
+
 after(async () => {
     await mongoose.connection.close()
 })
-
-// TODO:
-// 1. Tarkista että delete on ok
-// 2. Tee onnistunut put testi
-// 3. Tarkista väärien id tapauksissa että collection pituudet täsmää
-// 4. Tarkista pitikö tehdä id:llä GET
