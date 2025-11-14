@@ -151,6 +151,23 @@ describe('updating blogs', () => {
         assert(updatedBlogInDb.likes === updatedBlog.likes)
     })
 
+    test('adding a blog without required fields returns 400', async () => {
+        const blogsAtStart = await helper.blogsInDb()
+        const blogToUpdate = blogsAtStart[0]
+        const updatedBlog = {
+            author: 'some guy who forgot the title and url'
+        }
+
+        await api
+            .put(`/api/blogs/${blogToUpdate.id}`)
+            .send(updatedBlog)
+            .expect(400)
+
+        const blogsAtEnd = await helper.blogsInDb()
+
+        assert.strictEqual(blogsAtEnd.length, helper.initialBlogs.length)
+    })
+
     test('a blog that doesn\'t exist can\'t be updated', async () => {
         const nonExistingId = await helper.nonExistingId()
         await api
