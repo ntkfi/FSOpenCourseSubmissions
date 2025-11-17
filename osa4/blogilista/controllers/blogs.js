@@ -30,10 +30,7 @@ blogsRouter.put('/:id', async (request, response) => {
   Object.assign(blogToUpdate, body)
 
   const updatedBlog = await blogToUpdate.save()
-
   response.json(updatedBlog)
 })
 
 module.exports = blogsRouter
-
-// TODO: korjaa tämä put ks. gemini

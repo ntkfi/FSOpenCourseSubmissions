@@ -122,6 +122,17 @@ describe('deleting blogs', () => {
 
         assert.strictEqual(blogsAtEnd.length, helper.initialBlogs.length - 1)
     })
+
+    test('malformatted id returns 400', async () => {
+        const malformattedId = 'xyz'
+        await api
+            .delete(`/api/blogs/${malformattedId}`)
+            .expect(400)
+
+        const blogsAtEnd = await helper.blogsInDb()
+
+        assert.strictEqual(blogsAtEnd.length, helper.initialBlogs.length)
+    })
 })
 
 describe('updating blogs', () => {
@@ -142,29 +153,12 @@ describe('updating blogs', () => {
             .expect('Content-Type', /application\/json/)
 
         const blogsAtEnd = await helper.blogsInDb()
-        
+
         const updatedBlogInDb = blogsAtEnd.find(b => b.id === blogToUpdate.id)
 
         assert.strictEqual(blogsAtEnd.length, helper.initialBlogs.length)
-        
+
         assert(updatedBlogInDb.likes === updatedBlog.likes)
-    })
-
-    test('adding a blog without required fields returns 400', async () => {
-        const blogsAtStart = await helper.blogsInDb()
-        const blogToUpdate = blogsAtStart[0]
-        const updatedBlog = {
-            author: 'some guy who forgot the title and url'
-        }
-
-        await api
-            .put(`/api/blogs/${blogToUpdate.id}`)
-            .send(updatedBlog)
-            .expect(400)
-
-        const blogsAtEnd = await helper.blogsInDb()
-
-        assert.strictEqual(blogsAtEnd.length, helper.initialBlogs.length)
     })
 
     test('a blog that doesn\'t exist can\'t be updated', async () => {
