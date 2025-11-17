@@ -20,17 +20,14 @@ blogsRouter.delete('/:id', async (request, response) => {
 })
 
 blogsRouter.put('/:id', async (request, response) => {
-  const { title, author, url, likes } = request.body;
+  const body = request.body;
   const blogToUpdate = await Blog.findById(request.params.id)
 
   if (!blogToUpdate) {
     return response.status(404).end()
   }
 
-  blogToUpdate.title = title
-  blogToUpdate.author = author
-  blogToUpdate.url = url
-  blogToUpdate.likes = likes
+  Object.assign(blogToUpdate, body)
 
   const updatedBlog = await blogToUpdate.save()
 
