@@ -22,6 +22,3 @@ app.use(middleware.unknownEndpoint)
 app.use(middleware.errorHandler)
 
 module.exports = app
-
-// ntkumpul munsalasana
-// theino timoheino123

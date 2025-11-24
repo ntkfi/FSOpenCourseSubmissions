@@ -7,6 +7,7 @@ const bcrypt = require('bcrypt')
 const helper = require('./api_test_helper')
 const Blog = require('../models/blog')
 const User = require('../models/user')
+const jwt = require('jsonwebtoken')
 
 const api = supertest(app)
 
@@ -73,6 +74,7 @@ describe('user tests', () => {
 
 describe('blog tests', () => {
     let testUser = null
+    let token = null
 
     before(async () => {
         await User.deleteMany({})
@@ -80,6 +82,8 @@ describe('blog tests', () => {
         const passwordHash = await bcrypt.hash('secret', 10)
         const user = new User({ username: 'root', name: 'admin', passwordHash })
         testUser = await user.save()
+        const userForToken = { username: testUser.username, id: testUser._id, }
+        token = jwt.sign(userForToken, process.env.SECRET, { expiresIn: '5m' })
     })
 
     beforeEach(async () => {
@@ -125,7 +129,7 @@ describe('blog tests', () => {
             const response = await api.get('/api/blogs')
 
             const firstBlog = response.body[0]
-            
+
             assert(mongoose.Types.ObjectId.isValid(firstBlog.user.id));
         })
     })
@@ -142,6 +146,7 @@ describe('blog tests', () => {
 
             await api
                 .post('/api/blogs')
+                .set('Authorization', `Bearer ${token}`)
                 .send(newBlog)
                 .expect(201)
                 .expect('Content-Type', /application\/json/)
@@ -150,7 +155,7 @@ describe('blog tests', () => {
 
             const titles = response.body.map(r => r.title)
 
-            assert(response.body.length, helper.initialBlogs.length + 1)
+            assert.strictEqual(response.body.length, helper.initialBlogs.length + 1)
 
             assert(titles.includes('POST can be used to add new blogs'))
         })
@@ -165,6 +170,7 @@ describe('blog tests', () => {
 
             await api
                 .post('/api/blogs')
+                .set('Authorization', `Bearer ${token}`)
                 .send(newBlog)
                 .expect(201)
 
@@ -187,11 +193,13 @@ describe('blog tests', () => {
 
             await api
                 .post('/api/blogs')
+                .set('Authorization', `Bearer ${token}`)
                 .send(blogWithoutTitle)
                 .expect(400)
 
             await api
                 .post('/api/blogs')
+                .set('Authorization', `Bearer ${token}`)
                 .send(blogWithoutUrl)
                 .expect(400)
 
@@ -200,6 +208,26 @@ describe('blog tests', () => {
             assert.strictEqual(blogsAtEnd.length, helper.initialBlogs.length)
         })
 
+        test('blog can\'t be added without token', async () => {
+            const newBlog = {
+                title: 'POST can be used to add new blogs',
+                author: 'Postmaster123',
+                url: 'www.example.com',
+                likes: 3,
+                userId: testUser._id
+            }
+
+            const post_response = await api
+                .post('/api/blogs')
+                .send(newBlog)
+                .expect(401)
+
+            assert(post_response.body.error.includes('token invalid'))
+
+            const get_response = await api.get('/api/blogs')
+
+            assert.strictEqual(get_response.body.length, helper.initialBlogs.length)
+        })
     })
 
     describe('deleting blogs', () => {
@@ -209,6 +237,7 @@ describe('blog tests', () => {
 
             await api
                 .delete(`/api/blogs/${blogToDelete.id}`)
+                .set('Authorization', `Bearer ${token}`)
                 .expect(204)
 
             const blogsAtEnd = await helper.blogsInDb()
@@ -219,10 +248,33 @@ describe('blog tests', () => {
             assert.strictEqual(blogsAtEnd.length, helper.initialBlogs.length - 1)
         })
 
+        test('can\'t delete someone else\'s blog', async () => {
+            const blogsAtStart = await helper.blogsInDb()
+            const blogToDelete = blogsAtStart[0]
+
+            const passwordHash = await bcrypt.hash('secret', 10)
+            const newUser = new User({
+                username: 'faker',
+                name: 'Fake for Token',
+                passwordHash
+            })
+
+            const fakeUser = await newUser.save()
+            const faketoken = jwt.sign({ username: fakeUser.username, id: fakeUser._id }, process.env.SECRET, { expiresIn: '5m' })
+
+            const response = await api
+                .delete(`/api/blogs/${blogToDelete.id}`)
+                .set('Authorization', `Bearer ${faketoken}`)
+                .expect(401)
+
+            assert(response.body.error.includes('blog not written by token owner, can\'t delete'))
+        })
+
         test('malformatted id returns 400', async () => {
             const malformattedId = 'xyz'
             await api
                 .delete(`/api/blogs/${malformattedId}`)
+                .set('Authorization', `Bearer ${token}`)
                 .expect(400)
 
             const blogsAtEnd = await helper.blogsInDb()
