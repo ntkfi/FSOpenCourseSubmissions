@@ -1,63 +1,63 @@
-const dummy = (blogs) => {
-    return 1
+const dummy = () => {
+  return 1
 }
 
 const totalLikes = (blogs) => {
-    return blogs.reduce(
-        (accumulator, current) => accumulator + current.likes,
-        0
-    )
+  return blogs.reduce(
+    (accumulator, current) => accumulator + current.likes,
+    0
+  )
 }
 
 const favoriteBlog = (blogs) => {
-    if (blogs.length === 0) return null
+  if (blogs.length === 0) return null
 
-    return blogs.reduce(
-        (maxLikesBlog, current) =>
-            current.likes > maxLikesBlog.likes ? current : maxLikesBlog
-    )
+  return blogs.reduce(
+    (maxLikesBlog, current) =>
+      current.likes > maxLikesBlog.likes ? current : maxLikesBlog
+  )
 }
 
 const mostBlogs = (blogs) => {
-    if (blogs.length === 0) return null
+  if (blogs.length === 0) return null
 
-    const authorCounts = blogs.reduce((counts, blog) => {
-        counts[blog.author] = (counts[blog.author] || 0) + 1
-        return counts
-    }, {})
+  const authorCounts = blogs.reduce((counts, blog) => {
+    counts[blog.author] = (counts[blog.author] || 0) + 1
+    return counts
+  }, {})
 
-    const topAuthor = Object.entries(authorCounts).reduce((top, current) =>
-        current[1] > top[1] ? current : top
-    )
+  const topAuthor = Object.entries(authorCounts).reduce((top, current) =>
+    current[1] > top[1] ? current : top
+  )
 
-    return {
-        author: topAuthor[0],
-        blogs: topAuthor[1]
-    }
+  return {
+    author: topAuthor[0],
+    blogs: topAuthor[1]
+  }
 }
 
 const mostLikes = (blogs) => {
-    if (blogs.length === 0) return null
+  if (blogs.length === 0) return null
 
-    const authorLikes = blogs.reduce((sums, blog) => {
-        sums[blog.author] = (sums[blog.author] || 0) + blog.likes
-        return sums
-    }, {})
+  const authorLikes = blogs.reduce((sums, blog) => {
+    sums[blog.author] = (sums[blog.author] || 0) + blog.likes
+    return sums
+  }, {})
 
-    const topAuthor = Object.entries(authorLikes).reduce((top, current) => 
-        current[1] > top[1] ? current : top
-    )
+  const topAuthor = Object.entries(authorLikes).reduce((top, current) =>
+    current[1] > top[1] ? current : top
+  )
 
-    return {
-        author: topAuthor[0],
-        likes: topAuthor[1]
-    }    
+  return {
+    author: topAuthor[0],
+    likes: topAuthor[1]
+  }
 }
 
 module.exports = {
-    dummy,
-    totalLikes,
-    favoriteBlog,
-    mostBlogs,
-    mostLikes
+  dummy,
+  totalLikes,
+  favoriteBlog,
+  mostBlogs,
+  mostLikes
 }
