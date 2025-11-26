@@ -1,3 +1,6 @@
+const jwt = require('jsonwebtoken')
+const User = require('../models/user')
+
 const tokenExtractor = (request, response, next) => {
   const authorization = request.get('authorization')
   if (authorization && authorization.startsWith('Bearer ')) {
@@ -5,6 +8,21 @@ const tokenExtractor = (request, response, next) => {
   } else {
     request.token = null
   }
+  next()
+}
+
+const userExtractor = async (request, response, next) => {
+  if (!request.token) {
+    request.user = null
+    return next()
+  }
+  const decodedToken = jwt.verify(request.token, process.env.SECRET)
+  if (!decodedToken.id) {
+    request.user = null
+    return next()
+  }
+  const user = await User.findById(decodedToken.id)
+  request.user = user
   next()
 }
 
@@ -24,8 +42,7 @@ const errorHandler = (error, request, response, next) => {
   } else if (error.name === 'TokenExpiredError') {
     return response.status(401).json({ error: 'token expired' })
   }
-
   next(error)
 }
 
-module.exports = { tokenExtractor, unknownEndpoint, errorHandler }
+module.exports = { tokenExtractor, userExtractor, unknownEndpoint, errorHandler }

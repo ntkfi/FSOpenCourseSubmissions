@@ -141,23 +141,25 @@ describe('blog tests', () => {
                 author: 'Postmaster123',
                 url: 'www.example.com',
                 likes: 3,
-                userId: testUser._id
+                user: testUser._id
             }
 
-            await api
+            const savedBlog = await api
                 .post('/api/blogs')
                 .set('Authorization', `Bearer ${token}`)
                 .send(newBlog)
                 .expect(201)
                 .expect('Content-Type', /application\/json/)
 
-            const response = await api.get('/api/blogs')
+            const savedBlog_id = savedBlog.body.id
 
+            const response = await api.get('/api/blogs')
             const titles = response.body.map(r => r.title)
+            const blogs_of_users = await helper.blogs_of_users()
 
             assert.strictEqual(response.body.length, helper.initialBlogs.length + 1)
-
             assert(titles.includes('POST can be used to add new blogs'))
+            assert(blogs_of_users.toString().includes(savedBlog_id))
         })
 
         test('if no likes are added, defaults to 0', async () => {
@@ -165,7 +167,7 @@ describe('blog tests', () => {
                 title: 'Where are the likes at',
                 author: 'Like Mike',
                 url: 'www.example.com/likes',
-                userId: testUser._id
+                user: testUser._id
             }
 
             await api
@@ -214,7 +216,7 @@ describe('blog tests', () => {
                 author: 'Postmaster123',
                 url: 'www.example.com',
                 likes: 3,
-                userId: testUser._id
+                user: testUser._id
             }
 
             const post_response = await api
@@ -241,11 +243,12 @@ describe('blog tests', () => {
                 .expect(204)
 
             const blogsAtEnd = await helper.blogsInDb()
-
             const titles = blogsAtEnd.map(b => b.titles)
-            assert(!titles.includes(blogToDelete.title))
+            const blogs_of_users = await helper.blogs_of_users()
 
+            assert(!titles.includes(blogToDelete.title))
             assert.strictEqual(blogsAtEnd.length, helper.initialBlogs.length - 1)
+            assert(!blogs_of_users.toString().includes(blogToDelete.id))
         })
 
         test('can\'t delete someone else\'s blog', async () => {

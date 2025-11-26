@@ -23,11 +23,11 @@ const initialBlogs = [
 ]
 
 const nonExistingId = async () => {
-  const blog = new Blog({ title: 'willremovethissoon', url: 'www.example.com'})
-  await blog.save()
-  await blog.deleteOne()
-  
-  return blog._id.toString()
+    const blog = new Blog({ title: 'willremovethissoon', url: 'www.example.com' })
+    await blog.save()
+    await blog.deleteOne()
+
+    return blog._id.toString()
 }
 
 const blogsInDb = async () => {
@@ -36,13 +36,23 @@ const blogsInDb = async () => {
 }
 
 const usersInDb = async () => {
-  const users = await User.find({})
-  return users.map(u => u.toJSON())
+    const users = await User.find({})
+    return users.map(u => u.toJSON())
+}
+
+const blogs_of_users = async () => {
+    const users = await User.find({})
+    const blogs_of_users = []
+    for (const user of users) {
+        blogs_of_users.push(user.blogs)
+    }
+    return blogs_of_users.flat()
 }
 
 module.exports = {
     initialBlogs,
     nonExistingId,
     blogsInDb,
-    usersInDb
+    usersInDb,
+    blogs_of_users
 }
