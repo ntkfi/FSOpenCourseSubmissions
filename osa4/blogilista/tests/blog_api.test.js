@@ -151,7 +151,7 @@ describe('blog tests', () => {
         .expect('Content-Type', /application\/json/)
 
       const savedBlog_id = savedBlog.body.id
-      const savedBlog_users = savedBlog.body.users
+      const savedBlog_user = savedBlog.body.user
 
       const response = await api.get('/api/blogs')
       const titles = response.body.map(r => r.title)
@@ -160,7 +160,7 @@ describe('blog tests', () => {
       assert.strictEqual(response.body.length, helper.initialBlogs.length + 1)
       assert(titles.includes('POST can be used to add new blogs'))
       assert(blogs_of_users.toString().includes(savedBlog_id))
-      assert(savedBlog_users.toString().includes(testUser._id().toString()))
+      assert(savedBlog_user.toString().includes(testUser._id.toString()))
     })
 
     test('if no likes are added, defaults to 0', async () => {
