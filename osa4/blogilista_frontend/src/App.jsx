@@ -9,10 +9,12 @@ import './index.css'
 
 const App = () => {
   const [blogs, setBlogs] = useState([])
-  const [newTitle, setNewTitle] = useState("");
-  const [newAuthor, setNewAuthor] = useState("");
-  const [newUrl, setNewUrl] = useState("");
-  const [newLikes, setNewLikes] = useState("");
+  const [newBlog, setNewBlog] = useState({
+    title: '',
+    author: '',
+    url: '',
+    likes: ''
+  })
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [user, setUser] = useState(null)
@@ -30,6 +32,7 @@ const App = () => {
     if (loggedUser) {
       const user = JSON.parse(loggedUser)
       setUser(user)
+      blogService.setToken(user.token)
     }
   }, [])
 
@@ -48,6 +51,7 @@ const App = () => {
     try {
       const user = await loginService.login({ username, password })
       window.localStorage.setItem('loggedUser', JSON.stringify(user))
+      blogService.setToken(user.token)
       setUser(user)
       setUsername('')
       setPassword('')
@@ -61,8 +65,39 @@ const App = () => {
     setUser(null)
   }
 
-  const handleAddBlog = () => {
-    // ...
+  const handleBlogChange = (event) => {
+    const { name, value } = event.target
+    setNewBlog({ ...newBlog, [name]: value })
+  }
+
+  const handleAddBlog = async event => {
+    event.preventDefault()
+
+    const { title, author, url, likes } = newBlog
+
+    if (title.trim() === '' || url.trim() === '') {
+      showTemporaryNotification('Title and URL are required fields', 'error')
+      return
+    }
+
+    let parsedLikes = Number(likes)
+    if (likes.trim() === '') {
+      parsedLikes = 0
+    } else if (isNaN(parsedLikes)) {
+      showTemporaryNotification('Likes must be a valid number', 'error')
+      return
+    }
+
+    const blogObject = { title, author, url, likes: parsedLikes }
+
+    try {
+      const returnedBlog = await blogService.create(blogObject)
+      setBlogs(blogs.concat(returnedBlog))
+      setNewBlog({ title: '', author: '', url: '', likes: '' })
+      showTemporaryNotification('New blog added', 'success')
+    } catch {
+      showTemporaryNotification('Error adding blog', 'error')
+    }
   }
 
   if (user === null) {
@@ -83,20 +118,14 @@ const App = () => {
   return (
     <div>
       <h2>Blogs</h2>
-      <span>{user.name} logged in</span> <button type="button" onClick={() => handleLogout()}>Logout</button><br /><br />
-
+      <Notification message={notification.message} type={notification.type} />
+      <span>{user.name} logged in</span> <button type="button" onClick={handleLogout}>Logout</button><br /><br />
       <BlogForm
-        title={newTitle}
-        author={newAuthor}
-        url={newUrl}
-        likes={newLikes}
-        setTitle={setNewTitle}
-        setAuthor={setNewAuthor}
-        setUrl={setNewUrl}
-        setLikes={setNewLikes}
+        blog={newBlog}
+        handleBlogChange={handleBlogChange}
         handleAddBlog={handleAddBlog}
       />
-
+      <hr />
       {blogs.map(blog =>
         <Blog key={blog.id} blog={blog} />
       )}
@@ -106,7 +135,5 @@ const App = () => {
 
 export default App
 // TODO:
-// 1. Luo Blogi-formi
-// 2. Luo handleBlogSubmit vai mikä onkaan nimi ehkä addBlog?
-// 3. Näytä vain käyttäjän omat blogit
-// 4. Notifikaatiot
+// 1. Näytä vain käyttäjän omat blogit
+// 2. Paranna uuden blogin lisäysnotifikaatiota (blogin nimi + tekijä)
