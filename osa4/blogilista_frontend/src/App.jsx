@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import Blog from './components/Blog'
 import Notification from './components/Notification'
 import LoginForm from './components/LoginForm'
+import BlogForm from './components/BlogForm'
 import blogService from './services/blogs'
 import loginService from './services/login'
 import './index.css'
@@ -60,6 +61,10 @@ const App = () => {
     setUser(null)
   }
 
+  const handleAddBlog = () => {
+    // ...
+  }
+
   if (user === null) {
     return (
       <div>
@@ -89,7 +94,7 @@ const App = () => {
         setAuthor={setNewAuthor}
         setUrl={setNewUrl}
         setLikes={setNewLikes}
-        handleSubmit={handleBlog}
+        handleAddBlog={handleAddBlog}
       />
 
       {blogs.map(blog =>
@@ -102,6 +107,6 @@ const App = () => {
 export default App
 // TODO:
 // 1. Luo Blogi-formi
-// 2. Luo handleBlogSubmit vai mikä onkaan nimi
+// 2. Luo handleBlogSubmit vai mikä onkaan nimi ehkä addBlog?
 // 3. Näytä vain käyttäjän omat blogit
 // 4. Notifikaatiot
