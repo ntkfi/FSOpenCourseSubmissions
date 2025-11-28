@@ -88,7 +88,7 @@ const App = () => {
     try {
       const returnedBlog = await blogService.create(parsedBlogObject)
       blogFormRef.current.toggleVisibility()
-      setBlogs(blogs.concat(returnedBlog))
+      setBlogs(blogs.concat({ ...returnedBlog, user }))
       if (returnedBlog.author) {
         showTemporaryNotification(`New blog '${returnedBlog.title}' by ${returnedBlog.author} added`, 'success')
       } else {
@@ -101,10 +101,21 @@ const App = () => {
     }
   }
 
+  const handleDeleteBlog = async id => {
+    try {
+      await blogService.remove(id)
+      const deletedBlog = blogs.find(b => b.id === id)
+      setBlogs(blogs.filter(b => b.id !== id))
+      showTemporaryNotification(`Deleted blog '${deletedBlog.title}'`, 'success')
+    } catch {
+      showTemporaryNotification('Deleting blog failed, check if token expired and re-log', 'error')
+    }
+  }
+
   const handleAddLike = async (id, updatedLikesObject) => {
     try {
       const returnedBlog = await blogService.update(id, updatedLikesObject)
-      setBlogs(blogs.map(b => b.id === returnedBlog.id ? {...returnedBlog, user: b.user} : b))
+      setBlogs(blogs.map(b => b.id === returnedBlog.id ? { ...returnedBlog, user: b.user } : b))
     } catch {
       showTemporaryNotification('Something went wrong while adding like', 'error')
     }
@@ -136,14 +147,10 @@ const App = () => {
       {[...blogs]
         .sort((b1, b2) => b2.likes - b1.likes)
         .map(blog =>
-        <Blog key={blog.id} blog={blog} handleAddLike={handleAddLike} />
-      )}
+          <Blog key={blog.id} blog={blog} loggedUserId={user.id} handleAddLike={handleAddLike} handleDeleteBlog={handleDeleteBlog} />
+        )}
     </div>
   )
 }
 
 export default App
-
-// TODO:
-// 1. Näytä vain käyttäjän omat blogit
-// 2. Näytä blogit siistimmin (ie. "Blog" by Author), koko filter/mappaus homman vois siirtää Blog-komponenttiin

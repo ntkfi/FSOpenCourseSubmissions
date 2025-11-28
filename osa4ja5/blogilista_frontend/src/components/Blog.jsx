@@ -1,12 +1,18 @@
 import { useState } from 'react'
 import '../index.css'
 
-const Blog = ({ blog, handleAddLike }) => {
+const Blog = ({ blog, loggedUserId, handleAddLike, handleDeleteBlog }) => {
   const [showAll, setShowAll] = useState(false)
 
   const addLike = () => {
     const newLikes = blog.likes + 1
     handleAddLike(blog.id, { likes: newLikes })
+  }
+
+  const deleteBlog = () => {
+    if (window.confirm(`Delete '${blog.title}'?`)) {
+      handleDeleteBlog(blog.id)
+    }
   }
 
   if (showAll) {
@@ -17,6 +23,7 @@ const Blog = ({ blog, handleAddLike }) => {
         <p>Url: {blog.url}</p>
         <p>Likes: {blog.likes}<button type="button" onClick={addLike}>Like</button></p>
         <p>Added by: {blog.user.name}</p>
+        {blog.user.id === loggedUserId ? <button type="button" style={{ marginBottom: '1em' }} onClick={deleteBlog}>Remove blog</button> : null}
       </div>
     )
   }
