@@ -1,4 +1,26 @@
-const BlogForm = ({ blog, handleBlogChange, handleAddBlog }) => {
+import { useState } from 'react'
+
+const BlogForm = ({ createBlog }) => {
+    const [newBlog, setNewBlog] = useState({
+        title: '',
+        author: '',
+        url: '',
+        likes: ''
+    })
+
+    const handleAddBlog = async (event) => {
+        event.preventDefault()
+        const result = await createBlog({
+            title: newBlog.title,
+            author: newBlog.author,
+            url: newBlog.url,
+            likes: newBlog.likes
+        })
+        if (result) {
+            setNewBlog({ title: '', author: '', url: '', likes: '' })
+        }
+    }
+
     return (
         <div>
             <h2>Create new blog</h2>
@@ -9,8 +31,8 @@ const BlogForm = ({ blog, handleBlogChange, handleAddBlog }) => {
                         <input
                             type="text"
                             name="title"
-                            value={blog.title}
-                            onChange={handleBlogChange}
+                            value={newBlog.title}
+                            onChange={(event) => setNewBlog({ ...newBlog, [event.target.name]: event.target.value })}
                         />
                     </label>
                 </div>
@@ -20,8 +42,8 @@ const BlogForm = ({ blog, handleBlogChange, handleAddBlog }) => {
                         <input
                             type="text"
                             name="author"
-                            value={blog.author}
-                            onChange={handleBlogChange}
+                            value={newBlog.author}
+                            onChange={(event) => setNewBlog({ ...newBlog, [event.target.name]: event.target.value })}
                         />
                     </label>
                 </div>
@@ -31,8 +53,8 @@ const BlogForm = ({ blog, handleBlogChange, handleAddBlog }) => {
                         <input
                             type="text"
                             name="url"
-                            value={blog.url}
-                            onChange={handleBlogChange}
+                            value={newBlog.url}
+                            onChange={(event) => setNewBlog({ ...newBlog, [event.target.name]: event.target.value })}
                         />
                     </label>
                 </div>
@@ -42,8 +64,8 @@ const BlogForm = ({ blog, handleBlogChange, handleAddBlog }) => {
                         <input
                             type="text"
                             name="likes"
-                            value={blog.likes}
-                            onChange={handleBlogChange}
+                            value={newBlog.likes}
+                            onChange={(event) => setNewBlog({ ...newBlog, [event.target.name]: event.target.value })}
                         />
                     </label>
                 </div>

@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import Blog from './components/Blog'
 import Notification from './components/Notification'
+import Togglable from './components/Togglable'
 import LoginForm from './components/LoginForm'
 import BlogForm from './components/BlogForm'
 import blogService from './services/blogs'
@@ -9,15 +10,10 @@ import './index.css'
 
 const App = () => {
   const [blogs, setBlogs] = useState([])
-  const [newBlog, setNewBlog] = useState({
-    title: '',
-    author: '',
-    url: '',
-    likes: ''
-  })
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [user, setUser] = useState(null)
+  const blogFormRef = useRef(null)
   const [notification, setNotification] = useState({ message: null, type: null })
   const notificationTimeout = useRef(null)
 
@@ -65,38 +61,43 @@ const App = () => {
     setUser(null)
   }
 
-  const handleBlogChange = (event) => {
-    const { name, value } = event.target
-    setNewBlog({ ...newBlog, [name]: value })
+  const validateBlog = (blogObject) => {
+    if (blogObject.title.trim() === '' || blogObject.url.trim() === '') {
+      return { errorMessage: 'Title and URL are required fields' }
+    }
+
+    const parsedLikes = Number(blogObject.likes)
+    if (blogObject.likes.trim() === '') {
+      return { likes: 0 }
+    } else if (isNaN(parsedLikes)) {
+      return { errorMessage: 'Likes must be a valid number' }
+    }
+
+    return { likes: parsedLikes }
   }
 
-  const handleAddBlog = async event => {
-    event.preventDefault()
-
-    const { title, author, url, likes } = newBlog
-
-    if (title.trim() === '' || url.trim() === '') {
-      showTemporaryNotification('Title and URL are required fields', 'error')
-      return
+  const handleAddBlog = async (blogObject) => {
+    const validationResult = validateBlog(blogObject)
+    if (validationResult.errorMessage) {
+      showTemporaryNotification(validationResult.errorMessage, 'error')
+      return null
     }
 
-    let parsedLikes = Number(likes)
-    if (likes.trim() === '') {
-      parsedLikes = 0
-    } else if (isNaN(parsedLikes)) {
-      showTemporaryNotification('Likes must be a valid number', 'error')
-      return
-    }
-
-    const blogObject = { title, author, url, likes: parsedLikes }
+    const parsedBlogObject = { title: blogObject.title, author: blogObject.author, url: blogObject.url, likes: validationResult.likes }
 
     try {
-      const returnedBlog = await blogService.create(blogObject)
+      const returnedBlog = await blogService.create(parsedBlogObject)
+      blogFormRef.current.toggleVisibility()
       setBlogs(blogs.concat(returnedBlog))
-      setNewBlog({ title: '', author: '', url: '', likes: '' })
-      showTemporaryNotification('New blog added', 'success')
+      if (returnedBlog.author) {
+        showTemporaryNotification(`New blog '${returnedBlog.title}' by ${returnedBlog.author} added`, 'success')
+      } else {
+        showTemporaryNotification(`New blog '${returnedBlog.title}' added`, 'success')
+      }
+      return returnedBlog
     } catch {
       showTemporaryNotification('Error adding blog', 'error')
+      return null
     }
   }
 
@@ -120,12 +121,9 @@ const App = () => {
       <h2>Blogs</h2>
       <Notification message={notification.message} type={notification.type} />
       <span>{user.name} logged in</span> <button type="button" onClick={handleLogout}>Logout</button><br /><br />
-      <BlogForm
-        blog={newBlog}
-        handleBlogChange={handleBlogChange}
-        handleAddBlog={handleAddBlog}
-      />
-      <hr />
+      <Togglable buttonLabel='Create new blog' ref={blogFormRef}>
+        <BlogForm createBlog={handleAddBlog} />
+      </Togglable>
       {blogs.map(blog =>
         <Blog key={blog.id} blog={blog} />
       )}
@@ -134,6 +132,7 @@ const App = () => {
 }
 
 export default App
+
 // TODO:
 // 1. Näytä vain käyttäjän omat blogit
-// 2. Paranna uuden blogin lisäysnotifikaatiota (blogin nimi + tekijä)
+// 2. Näytä blogit siistimmin (ie. "Blog" by Author), koko filter/mappaus homman vois siirtää Blog-komponenttiin

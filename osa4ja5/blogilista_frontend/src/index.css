@@ -17,3 +17,19 @@
   padding: 10px;
   margin-bottom: 10px;
 }
+
+.expandedblog {
+  padding-top: 10;
+  padding-left: 2;
+  border: 2px solid;
+  margin: 1em 0;
+  max-width: 50%;
+}
+
+.expandedblog button {
+  margin-left: 1em;
+}
+
+.expandedblog p {
+  margin-left: 0.5em;
+}
