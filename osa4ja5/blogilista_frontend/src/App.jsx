@@ -101,6 +101,15 @@ const App = () => {
     }
   }
 
+  const handleAddLike = async (id, updatedLikesObject) => {
+    try {
+      const returnedBlog = await blogService.update(id, updatedLikesObject)
+      setBlogs(blogs.map(b => b.id === returnedBlog.id ? {...returnedBlog, user: b.user} : b))
+    } catch {
+      showTemporaryNotification('Something went wrong while adding like', 'error')
+    }
+  }
+
   if (user === null) {
     return (
       <div>
@@ -124,8 +133,10 @@ const App = () => {
       <Togglable buttonLabel='Create new blog' ref={blogFormRef}>
         <BlogForm createBlog={handleAddBlog} />
       </Togglable>
-      {blogs.map(blog =>
-        <Blog key={blog.id} blog={blog} />
+      {[...blogs]
+        .sort((b1, b2) => b2.likes - b1.likes)
+        .map(blog =>
+        <Blog key={blog.id} blog={blog} handleAddLike={handleAddLike} />
       )}
     </div>
   )

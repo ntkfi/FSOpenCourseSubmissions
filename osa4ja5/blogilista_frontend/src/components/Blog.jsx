@@ -1,8 +1,13 @@
 import { useState } from 'react'
 import '../index.css'
 
-const Blog = ({ blog }) => {
+const Blog = ({ blog, handleAddLike }) => {
   const [showAll, setShowAll] = useState(false)
+
+  const addLike = () => {
+    const newLikes = blog.likes + 1
+    handleAddLike(blog.id, { likes: newLikes })
+  }
 
   if (showAll) {
     return (
@@ -10,7 +15,8 @@ const Blog = ({ blog }) => {
         <p>Blog name: {blog.title}<button type="button" onClick={() => setShowAll(!showAll)}>Hide</button></p>
         <p>Author: {blog.author ? blog.author : 'Unknown'}</p>
         <p>Url: {blog.url}</p>
-        <p>Likes: {blog.likes}<button type="button" onClick={() => window.alert('LOL!!!')}>Like</button></p>
+        <p>Likes: {blog.likes}<button type="button" onClick={addLike}>Like</button></p>
+        <p>Added by: {blog.user.name}</p>
       </div>
     )
   }
