@@ -27,7 +27,7 @@ const BlogForm = ({ createBlog }) => {
       <form onSubmit={handleAddBlog}>
         <div>
           <label>
-                        Title&nbsp;
+            Title&nbsp;
             <input
               type="text"
               name="title"
@@ -38,7 +38,7 @@ const BlogForm = ({ createBlog }) => {
         </div>
         <div>
           <label>
-                        Author&nbsp;
+            Author&nbsp;
             <input
               type="text"
               name="author"
@@ -49,7 +49,7 @@ const BlogForm = ({ createBlog }) => {
         </div>
         <div>
           <label>
-                        URL&nbsp;
+            URL&nbsp;
             <input
               type="text"
               name="url"
@@ -60,7 +60,7 @@ const BlogForm = ({ createBlog }) => {
         </div>
         <div>
           <label>
-                        Likes&nbsp;
+            Likes&nbsp;
             <input
               type="text"
               name="likes"
