@@ -89,17 +89,17 @@ describe('blog tests', () => {
   beforeEach(async () => {
     await Blog.deleteMany({})
 
-    const user = await User.findById(testUser._id)
+    testUser = await User.findById(testUser._id)
 
     const blogsWithUser = helper.initialBlogs.map(blog => ({
       ...blog,
-      user: user._id
+      user: testUser._id
     }))
 
     const savedBlogs = await Blog.insertMany(blogsWithUser)
 
-    user.blogs = savedBlogs.map(blog => blog._id)
-    await user.save()
+    testUser.blogs = savedBlogs.map(blog => blog._id)
+    await testUser.save()
   })
 
   describe('fetching blogs when some have been added already', () => {

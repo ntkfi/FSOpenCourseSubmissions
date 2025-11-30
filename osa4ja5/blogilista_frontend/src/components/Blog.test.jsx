@@ -2,39 +2,26 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import Blog from './Blog'
 
-test('renders title', () => {
-  const blog = {
-    title: 'A test',
-    author: 'Tester',
-    url: 'www.example.com/test',
-    likes: 0,
-    id: '123abc',
-    user: {
-      username: 'Test123',
-      name: 'Test Man',
-      id: '456def'
-    }
+const blog = {
+  title: 'A test',
+  author: 'Tester',
+  url: 'www.example.com/test',
+  likes: 0,
+  id: '123abc',
+  user: {
+    username: 'Test123',
+    name: 'Test Man',
+    id: '456def'
   }
+}
 
+test('renders title', () => {
   render(<Blog blog={blog} />)
   const element = screen.findByText('A test')
   expect(element).toBeDefined()
 })
 
 test('when expanded renders all fields', async () => {
-  const blog = {
-    title: 'A test',
-    author: 'Tester',
-    url: 'www.example.com/test',
-    likes: 0,
-    id: '123abc',
-    user: {
-      username: 'Test123',
-      name: 'Test Man',
-      id: '456def'
-    }
-  }
-
   render(<Blog blog={blog} />)
 
   const user = userEvent.setup()
@@ -48,19 +35,6 @@ test('when expanded renders all fields', async () => {
 })
 
 test('when like button pressed twice, event handler called twice', async () => {
-  const blog = {
-    title: 'A test',
-    author: 'Tester',
-    url: 'www.example.com/test',
-    likes: 0,
-    id: '123abc',
-    user: {
-      username: 'Test123',
-      name: 'Test Man',
-      id: '456def'
-    }
-  }
-
   const mockHandler = vi.fn()
 
   render(<Blog blog={blog} handleAddLike={mockHandler} />)

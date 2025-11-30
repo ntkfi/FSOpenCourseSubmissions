@@ -21,7 +21,7 @@ const LoginForm = ({ username, setUsername, password, setPassword, handleLogin }
           />
         </label>
       </div>
-      <button type="submit">Login</button>
+      <button type="submit" data-cy="login-button">Login</button>
     </form>
   )
 }
