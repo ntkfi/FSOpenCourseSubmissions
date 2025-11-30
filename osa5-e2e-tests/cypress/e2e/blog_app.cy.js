@@ -84,7 +84,7 @@ describe('Blog app', function () {
         cy.contains('Likes: 9002')
       })
 
-      it.only('the user that added blog can delete it', function () {
+      it('the user that added blog can delete it', function () {
         cy.contains('button', 'View more').first().click()
         cy.get('.expandedblog').contains('button', 'Remove blog').click()
 
@@ -94,6 +94,39 @@ describe('Blog app', function () {
           .and('have.css', 'border-style', 'solid')
 
         cy.get('html').should('not.contain', 'Why I stopped using CSS and started using Telepathy by FullStackNinja')
+      })
+
+      it('user who didn\'t add blog doesn\'t see delete button', function () {
+        cy.contains('button', 'Logout').click()
+
+        const newUser = {
+          username: 'noaccess',
+          name: 'User without access to remove posts',
+          password: 'secret'
+        }
+        cy.request('POST', '/api/users', newUser)
+        cy.visit('')
+        cy.login({ username: 'noaccess', password: 'secret' })
+
+        cy.get('button')
+          .filter(':contains("View more")')
+          .each(($btn) => {
+            cy.wrap($btn).click()
+          })
+
+        cy.get('html').should('not.contain', 'Remove blog')
+      })
+
+      it('blogs are sorted descending according to likes', function () {
+        cy.get('button')
+          .filter(':contains("View more")')
+          .each(($btn) => {
+            cy.wrap($btn).click()
+          })
+
+        cy.get('.expandedblog').eq(0).should('contain', 'Blog name: Why I stopped using CSS and started using Telepathy')
+        cy.get('.expandedblog').eq(1).should('contain', 'Blog name: Understanding React Hooks in 2024')
+        cy.get('.expandedblog').eq(2).should('contain', 'Blog name: Canonical String Reduction')
       })
     })
   })
